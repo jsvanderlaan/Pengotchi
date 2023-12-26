@@ -1,0 +1,4 @@
+{
+    "watch": ["./pengotchi/", "./engine/"],
+    "ext": "js, css, html, ts"
+}

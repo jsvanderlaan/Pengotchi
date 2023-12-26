@@ -1,0 +1,19 @@
+{
+    "name": "pengotchi",
+    "version": "1.0.0",
+    "description": "",
+    "main": "pengotchi/index.ts",
+    "scripts": {
+        "start": "nodemon -x \"npm run build\"",
+        "build": "npm run build:ts && npm run build:html && npm run bundle",
+        "build:ts": "tsc",
+        "build:html": "cp ./pengotchi/index.html ./dist",
+        "bundle": "esbuild ./out/pengotchi/index.js --bundle --outfile=./dist/index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "esbuild": "0.19.10",
+        "typescript": "^5.3.3"
+    }
+}
