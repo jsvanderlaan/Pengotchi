@@ -1,3 +1,5 @@
+import { EventManager } from '../events/event-manager';
+import { Events } from '../events/events';
 import { Step } from './loop.types';
 
 export class Loop {
@@ -15,7 +17,7 @@ export class Loop {
         return this._fps;
     }
 
-    constructor(private _callback: Step) {}
+    constructor(private _callback: Step, private readonly _events: EventManager) {}
 
     start(): void {
         if (this._running) {
@@ -42,9 +44,7 @@ export class Loop {
         var delta = Math.max(0, time - this._lastTime); // todo Smooth??
 
         if (time >= this._nextFpsUpdate) {
-            this._fps = 0.6 * this._framesThisSecond + 0.4 * this._fps;
-            this._nextFpsUpdate = time + 1000;
-            this._framesThisSecond = 0;
+            this._updateFps(time);
         }
 
         this._callback(time, delta);
@@ -55,4 +55,11 @@ export class Loop {
 
         this._id = window.requestAnimationFrame(this._step);
     };
+
+    private _updateFps(time: DOMHighResTimeStamp) {
+        this._fps = 0.6 * this._framesThisSecond + 0.4 * this._fps;
+        this._events.emit(Events.fps_updated, this._fps);
+        this._nextFpsUpdate = time + 1000;
+        this._framesThisSecond = 0;
+    }
 }

@@ -1,3 +1,5 @@
-export abstract class GameObject {
-    abstract render(canvas: HTMLCanvasElement): void;
+import { IRenderable } from './game-object.types';
+
+export class GameObject implements IRenderable {
+    render(_: HTMLCanvasElement): void {}
 }

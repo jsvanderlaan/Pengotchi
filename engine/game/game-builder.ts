@@ -10,7 +10,6 @@ import { Game } from './game';
 export class GameBuilder {
     private _config: GameConfig = DEFAULT_GAME_CONFIG;
     private _scenes: Scene[] = [];
-    private _onStep: (game: Game) => void = () => {};
 
     private constructor(private readonly _name: string) {}
 
@@ -28,11 +27,6 @@ export class GameBuilder {
         return this;
     }
 
-    onStep(onStep: (game: Game) => void): GameBuilder {
-        this._onStep = onStep;
-        return this;
-    }
-
     build(): Promise<Game> {
         return new Promise((resolve, _) => {
             DOMUtils.onContentLoaded(() =>
@@ -43,8 +37,7 @@ export class GameBuilder {
                         new CanvasRenderer(this._config),
                         new CacheManager(),
                         new AssetLoader(),
-                        new SceneManager(this._scenes),
-                        this._onStep
+                        new SceneManager(this._scenes)
                     )
                 )
             );
