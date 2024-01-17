@@ -1,39 +1,40 @@
-import { CacheManager } from '../cache/cache-manager';
 import { GameConfig } from '../config/game-config';
+import { DOMUtils } from '../dom/dom-utils';
 import { EventManager } from '../events/event-manager';
-import { AssetLoader } from '../loader/asset-loader';
 import { Loop } from '../loop/loop';
 import { CanvasRenderer } from '../renderer/canvas-renderer';
 import { SceneManager } from '../scene/scene-manager';
 
 export class Game {
     readonly events: EventManager = new EventManager();
-    private _loop: Loop | null = null; // todo make private
+    private readonly _renderer: CanvasRenderer;
+    readonly scenes: SceneManager = new SceneManager(this.events);
 
-    constructor(
-        readonly name: string,
-        private readonly _config: GameConfig,
-        private readonly _renderer: CanvasRenderer,
-        private readonly _cacheManager: CacheManager,
-        private readonly _assestLoader: AssetLoader,
-        private readonly _sceneManager: SceneManager
-    ) {}
+    private readonly _loop: Loop;
+
+    constructor(readonly name: string, private readonly _config: GameConfig) {
+        this._loop = new Loop((time, delta) => this._step(time, delta), this.events);
+        this._renderer = new CanvasRenderer(this._config);
+
+        DOMUtils.onContentLoaded(() => this._boot());
+    }
 
     start(): void {
-        if (this._loop === null) {
-            this._loop = new Loop(this._step, this.events);
-        }
-
-        this._loop?.start();
+        this._loop.start();
     }
 
     stop(): void {
-        this._loop?.stop();
+        this._loop.stop();
     }
 
-    private _step = (time: DOMHighResTimeStamp, delta: number): void => {
-        this._sceneManager.scene.update(time, delta);
+    private _boot(): void {
+        this._renderer.boot();
+        this.start();
+    }
 
-        this._renderer.render(this._sceneManager.scene);
-    };
+    private _step(time: DOMHighResTimeStamp, delta: number): void {
+        this.scenes.update(time, delta);
+
+        this._renderer.render(this.scenes);
+    }
 }

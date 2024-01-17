@@ -2,7 +2,6 @@ export class Cache<T> {
     private readonly _cache: Record<string, T> = {};
 
     add(key: string, data: T): void {
-        console.log('cache added', key, data);
         this._cache[key] = data;
     }
 
@@ -11,7 +10,11 @@ export class Cache<T> {
     }
 
     get(key: string): T {
-        return this._cache[key];
+        const cache = this._cache[key];
+        if (cache === undefined) {
+            throw new Error(`Cache with key ${key} does not exist.`);
+        }
+        return cache;
     }
 
     remove(key: string): void {

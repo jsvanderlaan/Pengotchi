@@ -1,5 +1,6 @@
-import { IRenderable } from './game-object.types';
+import { Step } from '../loop/loop.types';
 
-export class GameObject implements IRenderable {
-    render(_: HTMLCanvasElement): void {}
+export class GameObject {
+    render?(ctx: CanvasRenderingContext2D): void;
+    update?: Step;
 }

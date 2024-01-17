@@ -1,19 +1,14 @@
-import { CacheManager } from '../cache/cache-manager';
 import { DEFAULT_GAME_CONFIG, GameConfig } from '../config/game-config';
-import { DOMUtils } from '../dom/dom-utils';
-import { AssetLoader } from '../loader/asset-loader';
-import { CanvasRenderer } from '../renderer/canvas-renderer';
-import { Scene } from '../scene/scene';
-import { SceneManager } from '../scene/scene-manager';
+import { SceneBuilder } from '../scene/scene-builder';
 import { Game } from './game';
 
 export class GameBuilder {
     private _config: GameConfig = DEFAULT_GAME_CONFIG;
-    private _scenes: Scene[] = [];
+    private _scenes: Record<string, (sceneBuilder: SceneBuilder) => SceneBuilder> = {};
 
     private constructor(private readonly _name: string) {}
 
-    static create(name: string): GameBuilder {
+    static new(name: string): GameBuilder {
         return new GameBuilder(name);
     }
 
@@ -22,25 +17,18 @@ export class GameBuilder {
         return this;
     }
 
-    addScenes(...scenes: Scene[]): GameBuilder {
-        this._scenes = this._scenes.concat(scenes);
+    scene(name: string, options: (sceneBuilder: SceneBuilder) => SceneBuilder): GameBuilder {
+        if (this._scenes[name] !== undefined) {
+            throw new Error(`Scene with name ${name} already exists`);
+        }
+        this._scenes[name] = options;
+
         return this;
     }
 
-    build(): Promise<Game> {
-        return new Promise((resolve, _) => {
-            DOMUtils.onContentLoaded(() =>
-                resolve(
-                    new Game(
-                        this._name,
-                        this._config,
-                        new CanvasRenderer(this._config),
-                        new CacheManager(),
-                        new AssetLoader(),
-                        new SceneManager(this._scenes)
-                    )
-                )
-            );
-        });
+    run(): Game {
+        const game = new Game(this._name, this._config);
+        Object.entries(this._scenes).forEach(([name, options]) => game.scenes.add(name, options));
+        return game;
     }
 }

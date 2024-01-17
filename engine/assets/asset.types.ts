@@ -1,8 +1,9 @@
 export enum FileType {
     image = 'image',
+    animation = 'animation',
 }
 
-export interface File {
+export interface Asset {
     key: string;
     fileType: FileType;
     load: () => Promise<void>;

@@ -1,25 +1,34 @@
 import { UniqueQueue } from '../common/datastructures/unique-queue';
-import { File } from './loader.types';
+import { Asset } from './asset.types';
 
 export class AssetLoader {
+    private _loading: boolean = false;
     private readonly _concurrentAmount: number = 10;
 
-    private _queue: UniqueQueue<File> = new UniqueQueue(file => file.key);
-    private _inflight: Set<File> = new Set<File>();
+    private _queue: UniqueQueue<Asset> = new UniqueQueue(file => file.key);
+    private _inflight: Set<Asset> = new Set<Asset>();
 
-    add(...files: File[]) {
+    constructor(files: Asset[]) {
         this._queue.add(...files);
     }
 
-    async load(): Promise<void> {
-        const inflightLength = this._inflight.size;
-
-        if (this._queue.length === 0 && inflightLength === 0) {
-            return Promise.resolve();
+    load(callback: () => void): void {
+        if (this._loading) {
+            return;
         }
 
-        const loading = [...Array(this._concurrentAmount - inflightLength)].map(() => this._loadNext());
-        await Promise.all(loading);
+        if (this._queue.length === 0) {
+            this._complete(callback);
+            return;
+        }
+
+        const loading = [...Array(this._concurrentAmount)].map(() => this._loadNext());
+        Promise.all(loading).then(() => this._complete(callback));
+    }
+
+    private _complete(callback: () => void): void {
+        callback();
+        this._loading = false;
     }
 
     private async _loadNext(): Promise<void> {
